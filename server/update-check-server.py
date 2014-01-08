@@ -10,8 +10,8 @@ import os
 
 DEFAULT_PORT_NUMBER = 8888
 
-def binaryPath(package, version, variant):
-    return os.path.join(packages.packagesPath,package,repr(version),variant+'.apk')
+def binaryPath(package, variant):
+    return os.path.join(packages.packagesPath,package,repr(variant['version']),variant['fileName'])
 
 def readBinary(path):
     f = open(path)
@@ -43,23 +43,26 @@ class myHandler(BaseHTTPRequestHandler):
             self.send_header('content-type','text/plain')
             self.end_headers()
 
-            packageVersions = packages.packages.get(packageName)
-            if packageVersions:
-                lastVersion=packageVersions.get(variantId, -1)
-                if lastVersion > version:
-                    downloadLink = urlparse.urljoin(settings.downloadHostUrl,
-                                                    'get?package_name=%s&variant_id=%s' % (packageName, variantId))
-                    self.wfile.write('have update\n')
-                    self.wfile.write(downloadLink)
-                    return
+            packageVariants = packages.packages.get(packageName)
+            if packageVariants:
+                variant=packageVariants.get(variantId)
+                if variant:
+                    lastVersion = variant['version']
+                    if lastVersion > version:
+                        downloadLink = urlparse.urljoin(
+                            settings.downloadHostUrl,'download/%s?package_name=%s&variant_id=%s' %
+                                                        (variant['fileName'],packageName,variantId))
+                        self.wfile.write('have update\n')
+                        self.wfile.write(downloadLink)
+                        return
             self.wfile.writeln('no update')
 
-        elif url.path == '/get':
+        elif url.path.startswith('/download'):
             params = dict(urlparse.parse_qsl(url.query))
             packageName = params.get('package_name')
-            package = binaries.get(packageName)
-            if package:
-                binary = package[params.get('variant_id','')]
+            packageBinaries = binaries.get(packageName)
+            if packageBinaries:
+                binary = packageBinaries[params.get('variant_id','')]
             else:
                 binary = None
 
@@ -75,7 +78,8 @@ class myHandler(BaseHTTPRequestHandler):
 
 def loadBinariesForPackage(package):
     variants = packages.packages[package]
-    return dict([(c, readBinary(binaryPath(package,v, c))) for c,v in variants.items()])
+    return dict([(variantId, readBinary(binaryPath(package,variant)))
+                 for variantId,variant in variants.items()])
 
 binaries = dict([(k,loadBinariesForPackage(k))
                             for k in packages.packages.keys()])
