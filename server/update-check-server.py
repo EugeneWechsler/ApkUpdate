@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # coding=utf-8
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import urlparse
-import sys, getopt
+from tornado import web
 import packages
 import settings
 import os
+import tornado.ioloop
+import tornado.web
+
 
 
 DEFAULT_PORT_NUMBER = 8888
@@ -20,28 +22,24 @@ def readBinary(path):
     return data
 
 
-#This class will handles any incoming request from
-#the browser
-class myHandler(BaseHTTPRequestHandler):
+def loadBinariesForPackage(package):
+    variants = packages.packages[package]
+    return dict([(variantId, readBinary(binaryPath(package,variant)))
+                 for variantId,variant in variants.items()])
 
-    #Handler for the GET requests
-    def do_GET(self):
-        url = urlparse.urlparse(self.path)
-        print url
-        if url.path == '/check':
-            params = dict(urlparse.parse_qsl(url.query))
-            packageName = params.get('package_name')
-            version = int(params.get('version', -1))
-            variantId = params.get('variant_id','')
+class CheckHandler(tornado.web.RequestHandler):
 
-            # md5 = params['md5']
-            if not packageName:
-                self.send_response(404)
-                return
+    def initialize(self):
+        super(CheckHandler, self).initialize()
 
-            self.send_response(200)
-            self.send_header('content-type','text/plain')
-            self.end_headers()
+    def get(self):
+        try:
+            packageName = self.get_argument('package_name')
+            version = self.get_argument('version', -1)
+            variantId = self.get_argument('variant_id','')
+
+            self.set_status(200)
+            self.set_header('content-type','text/plain')
 
             packageVariants = packages.packages.get(packageName)
             if packageVariants:
@@ -51,60 +49,46 @@ class myHandler(BaseHTTPRequestHandler):
                     if lastVersion > version:
                         downloadLink = urlparse.urljoin(
                             settings.downloadHostUrl,'download/%s?package_name=%s&variant_id=%s' %
-                                                        (variant['fileName'],packageName,variantId))
-                        self.wfile.write('have update\n')
-                        self.wfile.write(downloadLink)
+                                                     (variant['fileName'],packageName,variantId))
+                        self.write('have update\n')
+                        self.write(downloadLink)
                         return
-            self.wfile.writeln('no update')
+            self.write('no update')
+        except tornado.web.MissingArgumentError as e:
+            self.set_status(400, "Param is missing: %s" % e.arg_name)
 
-        elif url.path.startswith('/download'):
-            params = dict(urlparse.parse_qsl(url.query))
-            packageName = params.get('package_name')
-            packageBinaries = binaries.get(packageName)
+class DownloadHandler(tornado.web.RequestHandler):
+    binaries = None
+
+    def initialize(self):
+        super(DownloadHandler, self).initialize()
+        self.binaries = dict([(k,loadBinariesForPackage(k))
+                         for k in packages.packages.keys()])
+
+    def get(self):
+        try:
+            packageName = self.get_argument('package_name')
+            packageBinaries = self.binaries.get(packageName)
             if packageBinaries:
-                binary = packageBinaries[params.get('variant_id','')]
+                binary = packageBinaries[self.get_argument('variant_id','')]
             else:
                 binary = None
 
             if binary:
-                self.send_response(200)
-                self.send_header('content-type','application/vnd.android.package-archive')
-                self.end_headers()
-                self.wfile.write(binary)
+                self.set_status(200)
+                self.set_header('content-type','application/vnd.android.package-archive')
+                self.write(binary)
             else:
-                self.send_response(400)
-        else:
-            self.send_response(404)
+                self.set_status(404, "Package not found")
+        except tornado.web.MissingArgumentError as e:
+            self.set_status(400, "Param is missing: %s" % e.arg_name)
 
-def loadBinariesForPackage(package):
-    variants = packages.packages[package]
-    return dict([(variantId, readBinary(binaryPath(package,variant)))
-                 for variantId,variant in variants.items()])
+application = tornado.web.Application([
+    (r"/check", CheckHandler),
+    (r"/download/.*", DownloadHandler),
+    ], debug=True)
 
-binaries = dict([(k,loadBinariesForPackage(k))
-                            for k in packages.packages.keys()])
-
-server = None
-try:
-    #Create a web server and define the handler to manage the
-    #incoming request
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],'p:',['port='])
-    except getopt.GetoptError:
-        print sys.argv[0] + ' -p <port>'
-        sys.exit(2)
-    port = DEFAULT_PORT_NUMBER
-    print opts
-    for opt, arg in opts:
-        if opt in ('-p', '--port'):
-            port = int(arg)
-
-    server = HTTPServer(('', port), myHandler)
-    print 'Started httpserver on port ' , port
-
-    #Wait forever for incoming htto requests
-    server.serve_forever()
-
-except KeyboardInterrupt:
-    print '^C received, shutting down the web server'
-    server.socket.close()
+if __name__ == "__main__":
+    application.listen(settings.port)
+    print 'Started server on port ' , settings.port
+    tornado.ioloop.IOLoop.instance().start()
