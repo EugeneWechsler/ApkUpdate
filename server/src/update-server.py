@@ -1,14 +1,17 @@
 #!/usr/bin/python
 # coding=utf-8
 import urlparse
-from tornado import web
-import packages
-import settings
 import os
+
+from tornado import web
 import tornado.ioloop
+from tornado.options import define, options
 import tornado.web
 
-DEFAULT_PORT_NUMBER = 8888
+import packages
+import settings
+
+define("port", default=8888, help="Port to listen on", type=int)
 
 def binaryPath(package, variant):
     return os.path.join(packages.packagesPath,package,repr(variant['version']),variant['fileName'])
@@ -33,7 +36,7 @@ class CheckHandler(tornado.web.RequestHandler):
                 if variant:
                     lastVersion = variant['version']
                     if lastVersion > version:
-                        downloadLink = urlparse.urljoin(settings.downloadHostUrl,'download/%s/%s/%s' %
+                        downloadLink = urlparse.urljoin(settings.downloadHostUrl % options.port,'download/%s/%s/%s' %
                                                      (packageName,lastVersion,variant['fileName']))
                         self.write('have update\n')
                         self.write(downloadLink)
@@ -42,12 +45,18 @@ class CheckHandler(tornado.web.RequestHandler):
         except tornado.web.MissingArgumentError as e:
             self.set_status(400, "Param is missing: %s" % e.arg_name)
 
-application = tornado.web.Application([
-    (r"/check", CheckHandler),
-    (r"/download/(.*)", web.StaticFileHandler, {"path": os.path.abspath(packages.packagesPath)}),
-    ], debug=True)
+def main():
+    tornado.options.parse_command_line()
+
+    application = tornado.web.Application([
+        (r"/check", CheckHandler),
+        (r"/download/(.*)", web.StaticFileHandler, {"path": os.path.abspath(packages.packagesPath)}),
+        ], debug=True)
+    application.listen(tornado.options.options.port)
+    print 'Started server on port ' , options.port
+    tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
-    application.listen(settings.port)
-    print 'Started server on port ' , settings.port
-    tornado.ioloop.IOLoop.instance().start()
+    main()
+
+

@@ -5,5 +5,6 @@ cd ..
 
 yum install nginx
 chkconfig nginx on
-iptables -A INPUT -i eth0 -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+service iptables save
 
