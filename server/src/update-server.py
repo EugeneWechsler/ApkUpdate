@@ -8,6 +8,7 @@ import tornado.ioloop
 from tornado.options import define, options
 import tornado.web
 
+
 import packages
 import settings
 
@@ -24,7 +25,7 @@ class CheckHandler(tornado.web.RequestHandler):
     def get(self):
         try:
             packageName = self.get_argument('package_name')
-            version = self.get_argument('version', -1)
+            version = int(self.get_argument('version', -1))
             variantId = self.get_argument('variant_id','')
 
             self.set_status(200)
@@ -36,14 +37,16 @@ class CheckHandler(tornado.web.RequestHandler):
                 if variant:
                     lastVersion = variant['version']
                     if lastVersion > version:
-                        downloadLink = urlparse.urljoin(settings.downloadHostUrl % options.port,'download/%s/%s/%s' %
-                                                     (packageName,lastVersion,variant['fileName']))
+                        hostUrl = self.request.protocol + '://' + self.request.host
+                        downloadLink = urlparse.urljoin(hostUrl,'download/%s/%s/%s' %
+                                                     (packageName,variant['versionName'],variant['fileName']))
                         self.write('have update\n')
                         self.write(downloadLink)
                         return
             self.write('no update')
         except tornado.web.MissingArgumentError as e:
             self.set_status(400, "Param is missing: %s" % e.arg_name)
+
 
 def main():
     tornado.options.parse_command_line()
