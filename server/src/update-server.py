@@ -15,7 +15,7 @@ import settings
 define("port", default=8888, help="Port to listen on", type=int)
 
 def binaryPath(package, variant):
-    return os.path.join(packages.packagesPath,package,repr(variant['version']),variant['fileName'])
+    return os.path.join(settings.packagesPath,package,repr(variant['version']),variant['fileName'])
 
 class CheckHandler(tornado.web.RequestHandler):
 
@@ -24,7 +24,7 @@ class CheckHandler(tornado.web.RequestHandler):
 
     def get(self):
         try:
-            packageName = self.get_argument('package_name')
+            packageName = self.get_argument('pkgname')
             version = int(self.get_argument('version', -1))
             variantId = self.get_argument('variant_id','')
 
@@ -53,7 +53,7 @@ def main():
 
     application = tornado.web.Application([
         (r"/check", CheckHandler),
-        (r"/download/(.*)", web.StaticFileHandler, {"path": os.path.abspath(packages.packagesPath)}),
+        (r"/download/(.*)", web.StaticFileHandler, {"path": os.path.abspath(settings.packagesPath)}),
         ], debug=True)
     application.listen(tornado.options.options.port)
     print 'Started server on port ' , options.port
