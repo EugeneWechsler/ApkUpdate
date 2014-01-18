@@ -73,8 +73,8 @@ public class AutoUpdateApk extends Observable {
 	//
 	//		aua = new AutoUpdateApk(getApplicationContext());	<-- and add this line too
 	//
-	public AutoUpdateApk(Context ctx) {
-		setupVariables(ctx);
+	public AutoUpdateApk(Context ctx, String variantId) {
+		setupVariables(ctx, variantId);
 	}
 
 	// set icon for notification popup (default = application icon)
@@ -150,8 +150,8 @@ public class AutoUpdateApk extends Observable {
 	protected final static String TAG = "AutoUpdateApk";
 
 	private final static String ANDROID_PACKAGE = "application/vnd.android.package-archive";
-//	private final static String API_URL = "http://auto-update-apk.appspot.com/check";
-	private final static String API_URL = "http://www.auto-update-apk.com/check";
+//TODO
+//	private final static String API_URL = "http://your-domain.ru/check";
 
 	protected static Context context = null;
 	protected static SharedPreferences preferences;
@@ -161,6 +161,7 @@ public class AutoUpdateApk extends Observable {
 	private static int appIcon = android.R.drawable.ic_popup_reminder;
 	private static int versionCode = 0;		// as low as it gets
 	private static String packageName;
+    private static String variant_id;
 	private static String appName;
 	private static int device_id;
 
@@ -221,10 +222,11 @@ public class AutoUpdateApk extends Observable {
 		}
 	};
 
-	private void setupVariables(Context ctx) {
+	private void setupVariables(Context ctx, String variantId) {
 		context = ctx;
 
 		packageName = context.getPackageName();
+        variant_id = variantId;
 		preferences = context.getSharedPreferences( packageName + "_" + TAG, Context.MODE_PRIVATE);
 		device_id = crc32(Secure.getString( context.getContentResolver(), Secure.ANDROID_ID));
 		last_update = preferences.getLong("last_update", 0);
@@ -293,6 +295,7 @@ public class AutoUpdateApk extends Observable {
 			try {
 				StringEntity params = new StringEntity(
 						"pkgname=" + packageName + "&version=" + versionCode +
+                        "&variant_id=" + variant_id +
 						"&md5=" + preferences.getString( MD5_KEY, "0") +
 						"&id=" + String.format( "%08x", device_id) );
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
