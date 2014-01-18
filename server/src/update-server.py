@@ -2,6 +2,7 @@
 # coding=utf-8
 import urlparse
 import os
+import sys
 
 from tornado import web
 import tornado.ioloop
@@ -22,12 +23,28 @@ class CheckHandler(tornado.web.RequestHandler):
     def initialize(self):
         super(CheckHandler, self).initialize()
 
-    def get(self):
+    def post(self):
         try:
-            packageName = self.get_argument('pkgname')
-            version = int(self.get_argument('version', -1))
-            variantId = self.get_argument('variant_id','')
+            print('Received check request:\n %s' % self.request.body)
+            args = dict(urlparse.parse_qsl(self.request.body))
+            if not args.has_key('pkgname'):
 
+                return
+            if not args.has_key('variant_id'):
+                self.set_status(400, "Param is missing: variant_id")
+                return
+
+            packageName = args['pkgname']
+            if not packageName:
+                self.set_status(400, "Param is missing: pkgname")
+            if args.has_key('version'):
+                version = int(args['version'])
+            else:
+                version = -1
+
+            variantId = args['variant_id']
+            if not variantId:
+                variantId = ''
             self.set_status(200)
             self.set_header('content-type','text/plain')
 
@@ -44,8 +61,8 @@ class CheckHandler(tornado.web.RequestHandler):
                         self.write(downloadLink)
                         return
             self.write('no update')
-        except tornado.web.MissingArgumentError as e:
-            self.set_status(400, "Param is missing: %s" % e.arg_name)
+        finally:
+            sys.stdout.flush()
 
 
 def main():
@@ -57,6 +74,7 @@ def main():
         ], debug=True)
     application.listen(tornado.options.options.port)
     print 'Started server on port ' , options.port
+    sys.stdout.flush()
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
