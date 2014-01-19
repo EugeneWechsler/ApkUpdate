@@ -12,6 +12,12 @@ useradd update-server-user
 chmod 755 /var/www/apps/update-server/
 find /var/www/apps/update-server -name '*.py' -exec chmod 755 {} \;
 easy_install tornado
+## For qr code ##
+sudo yum install gcc
+sudo yum install python-devel
+sudo yum install libtiff-devel libjpeg-devel libzip-devel freetype-devel lcms2-devel libwebp-devel tcl-devel tk-devel
+pip install pillow
+pip install qrcode
 
 cp -f nginx.conf /etc/nginx/nginx.conf
 
