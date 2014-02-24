@@ -488,7 +488,10 @@ public class AutoUpdateApk extends Observable {
 	protected void Log_e(String tag, String message, Throwable e) {log("e", tag, message, e);}
 
 	protected void log(String level, String tag, String message, Throwable e) {
-		if(level.equalsIgnoreCase("v")) {
+        if (message == null) {
+            message = "";
+        }
+        if(level.equalsIgnoreCase("v")) {
 			if(e == null) android.util.Log.v(tag, message);
 			else android.util.Log.v(tag, message, e);
 		} else if(level.equalsIgnoreCase("d")) {
