@@ -49,40 +49,47 @@ class LatestHandler(tornado.web.RequestHandler):
         super(LatestHandler, self).initialize()
 
     def get(self, *args, **kwargs):
-        if args.__len__() != 2:
-            self.set_status(400)
-            return
+        try:
+            if args.__len__() != 2:
+                self.set_status(400)
+                print('Invalid url')
+                return
 
-        if not args[1].__contains__('.'):
-            self.set_status(404)
-            return
+            if not args[1].__contains__('.'):
+                print('File extension missing')
+                self.set_status(404)
+                return
 
-        fileName, extension = tuple(args[1].rsplit('.', 1))
-        fileName = fileName.lower()
-        extension = extension.lower()
+            fileName, extension = tuple(args[1].rsplit('.', 1))
+            fileName = fileName.lower()
+            extension = extension.lower()
 
-        if not extension in [self.EXT_APK, self.EXT_QR]:
-            self.set_status(404)
-            return
+            if not extension in [self.EXT_APK, self.EXT_QR]:
+                print('File extension unknown')
+                self.set_status(404)
+                return
 
-        packageVariants = packages.packages.get(args[0])
-        downloadLink = None
-        if packageVariants:
-            matchingVariants = [v for k, v in packageVariants.iteritems() if v['fileName'].lower() == fileName]
-            if matchingVariants.__len__() > 0:
-                downloadLink = generateDownloadLink(self.request, args[0], matchingVariants[0])
-        if not downloadLink:
-            self.set_status(404)
-            return
+            packageVariants = packages.packages.get(args[0])
+            downloadLink = None
+            if packageVariants:
+                matchingVariants = [v for k, v in packageVariants.iteritems() if v['fileName'].lower() == fileName]
+                if matchingVariants.__len__() > 0:
+                    downloadLink = generateDownloadLink(self.request, args[0], matchingVariants[0])
+            if not downloadLink:
+                print('No matching variants')
+                self.set_status(404)
+                return
 
-        if extension == self.EXT_APK:
-            self.redirect(downloadLink)
-        elif extension == self.EXT_QR:
-            img = qrcode.make(downloadLink)
-            self.set_header('content-type','image/png')
-            output = StringIO.StringIO()
-            img.save(output, 'PNG')
-            self.write(output.getvalue())
+            if extension == self.EXT_APK:
+                self.redirect(downloadLink)
+            elif extension == self.EXT_QR:
+                img = qrcode.make(downloadLink)
+                self.set_header('content-type','image/png')
+                output = StringIO.StringIO()
+                img.save(output, 'PNG')
+                self.write(output.getvalue())
+        finally:
+            sys.stdout.flush()
 
 
 class CheckHandler(tornado.web.RequestHandler):
@@ -91,7 +98,7 @@ class CheckHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
-            print('Received check request:\n %s' % self.request.body)
+            #print('Received check request:\n %s' % self.request.body)
             args = dict(urlparse.parse_qsl(self.request.body))
             if not args.has_key('pkgname'):
                 return
