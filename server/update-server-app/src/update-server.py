@@ -27,13 +27,13 @@ from tornado.options import define, options
 import tornado.web
 
 import packages
-import settings
 
-define("port", default=8888, help="Port to listen on", type=int)
+define("port", default=os.environ.get("TORNADO_PORT",8888), help="Port to listen on", type=int)
+define("packages", default=os.environ.get("APK_PACKAGES","./packages"), help="Path to packages folder", type=str)
 
 
 def binaryPath(package, variant):
-    return os.path.join(settings.packagesPath, package, repr(variant['version']), variant['fileName'])
+    return os.path.join(tornado.options.options.packages, package, repr(variant['version']), variant['fileName'])
 
 
 def generateDownloadLink(request, packageName, variant):
@@ -141,7 +141,7 @@ def main():
     application = tornado.web.Application([
                                               (r"/check", CheckHandler),
                                               (r"/download/(.*)", web.StaticFileHandler,
-                                               {"path": os.path.abspath(settings.packagesPath)}),
+                                               {"path": os.path.abspath(tornado.options.options.packages)}),
                                               (r"/(.*)/(.*)", LatestHandler),
                                           ], debug=True)
     application.listen(tornado.options.options.port)

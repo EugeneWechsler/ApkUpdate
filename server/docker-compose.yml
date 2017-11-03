@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  update-server-app:
+    build: ./update-server-app
+    image: update-server-app:python
+    container_name: update-server-app
+    ports:
+      - 17000:7777
+    environment:
+      - TORNADO-PORT=17000

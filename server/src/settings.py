@@ -1,1 +1,0 @@
-packagesPath = './packages'
