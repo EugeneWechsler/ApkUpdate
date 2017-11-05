@@ -29,8 +29,12 @@ import imp
 define("port", default=os.environ.get("TORNADO_PORT",8888), help="Port to listen on", type=int)
 define("packages", default=os.environ.get("APK_PACKAGES","./packages"), help="Path to packages folder", type=str)
 
-def packages():
-    return imp.load_source('packages', os.path.join(tornado.options.options.packages,'packages.py'))
+
+def packages_module():
+    return imp.load_source('packages', packages_file())
+
+def packages_file():
+    return os.path.join(tornado.options.options.packages,'packages.py')
 
 def binaryPath(package, variant):
     return os.path.join(tornado.options.options.packages, package, repr(variant['version']), variant['fileName'])
@@ -69,7 +73,7 @@ class LatestHandler(tornado.web.RequestHandler):
                 self.set_status(404)
                 return
 
-            packageVariants = packages().packages.get(args[0])
+            packageVariants = packages_module().packages.get(args[0])
             downloadLink = None
             if packageVariants:
                 matchingVariants = [v for k, v in packageVariants.iteritems() if v['fileName'].lower() == fileName]
@@ -101,6 +105,7 @@ class CheckHandler(tornado.web.RequestHandler):
             #print('Received check request:\n %s' % self.request.body)
             args = dict(urlparse.parse_qsl(self.request.body))
             if not args.has_key('pkgname'):
+                self.set_status(400, "Param is missing: package_name")
                 return
             if not args.has_key('variant_id'):
                 self.set_status(400, "Param is missing: variant_id")
@@ -120,7 +125,7 @@ class CheckHandler(tornado.web.RequestHandler):
             self.set_status(200)
             self.set_header('content-type', 'text/plain')
 
-            packageVariants = packages().packages.get(packageName)
+            packageVariants = packages_module().packages.get(packageName)
             if packageVariants:
                 variant = packageVariants.get(variantId)
                 if variant:
@@ -137,7 +142,9 @@ class CheckHandler(tornado.web.RequestHandler):
 
 def main():
     tornado.options.parse_command_line()
-
+    if not os.path.isfile(packages_file()):
+        print "Packages file not found at %s" % packages_file()
+        return
     application = tornado.web.Application([
                                               (r"/check", CheckHandler),
                                               (r"/download/(.*)", web.StaticFileHandler,
