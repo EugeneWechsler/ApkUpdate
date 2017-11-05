@@ -6,6 +6,6 @@ services:
     image: update-server-app:python
     container_name: update-server-app
     ports:
-      - 17000:7777
+      - 17000:8888
     environment:
-      - TORNADO-PORT=17000
+      - TORNADO_PORT=17000

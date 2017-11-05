@@ -15,22 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import StringIO
-
 import urlparse
-import os
 import sys
-import qrcode
 
+import os
+import qrcode
 from tornado import web
 import tornado.ioloop
 from tornado.options import define, options
 import tornado.web
-
-import packages
+import imp
 
 define("port", default=os.environ.get("TORNADO_PORT",8888), help="Port to listen on", type=int)
 define("packages", default=os.environ.get("APK_PACKAGES","./packages"), help="Path to packages folder", type=str)
 
+def packages():
+    return imp.load_source('packages', os.path.join(tornado.options.options.packages,'packages.py'))
 
 def binaryPath(package, variant):
     return os.path.join(tornado.options.options.packages, package, repr(variant['version']), variant['fileName'])
@@ -69,7 +69,7 @@ class LatestHandler(tornado.web.RequestHandler):
                 self.set_status(404)
                 return
 
-            packageVariants = packages.packages.get(args[0])
+            packageVariants = packages().packages.get(args[0])
             downloadLink = None
             if packageVariants:
                 matchingVariants = [v for k, v in packageVariants.iteritems() if v['fileName'].lower() == fileName]
@@ -120,7 +120,7 @@ class CheckHandler(tornado.web.RequestHandler):
             self.set_status(200)
             self.set_header('content-type', 'text/plain')
 
-            packageVariants = packages.packages.get(packageName)
+            packageVariants = packages().packages.get(packageName)
             if packageVariants:
                 variant = packageVariants.get(variantId)
                 if variant:
