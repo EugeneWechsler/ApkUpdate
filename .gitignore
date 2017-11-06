@@ -2,4 +2,4 @@ server/.idea
 *.iml
 *.pyc
 
-server/update-server-app/src/log
+server/log

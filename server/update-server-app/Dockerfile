@@ -1,5 +1,5 @@
 FROM python:2.7-alpine3.6
-MAINTAINER Eugene Wechsler "<eugenewechsler@gmail.com>
+MAINTAINER Eugene Wechsler "<eugenewechsler@gmail.com>"
 
 ENV SUPERVISOR_VERSION=3.3.1
 ENV PYTHONPATH=$PYTHONPATH:/update-server/
@@ -23,5 +23,4 @@ RUN pip install -r requirements.txt
 
 RUN pip install supervisor==$SUPERVISOR_VERSION
 
-#ENTRYPOINT ["python", "update-server.py"]
 ENTRYPOINT ["sh", "/Docker_entry.sh"]

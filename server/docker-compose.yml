@@ -1,6 +1,23 @@
 version: '3'
 
 services:
+  ngnix:
+    build: ./nginx
+    image: update-server-app:nginx
+    container_name: update-server-nginx
+    ports:
+      - 8888:80
+    volumes:
+      - ./update-server-app/src/packages:/packages
+      - ./log:/var/log
+    environment:
+      - UPDATE_SERVER_ADDRESS=update-server-supervisor
+      - UPDATE_SERVER_PORT1=13000
+      - UPDATE_SERVER_PORT2=13001
+      - UPDATE_SERVER_PORT3=13002
+      - UPDATE_SERVER_PORT4=13003
+    links:
+      - update-server-supervisor
 
   update-server-supervisor:
     build: ./update-server-app
@@ -10,7 +27,7 @@ services:
       - 13000-13003:13000-13003
     volumes:
       - ./update-server-app/src/packages:/packages
-      - ./update-server-app/src/log:/var/log
+      - ./log:/var/log
     environment:
       - SUPERVISOR_START_PORT=13000
       - SUPERVISOR_PROCESSES=4
