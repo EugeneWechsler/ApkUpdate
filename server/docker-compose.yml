@@ -18,6 +18,8 @@ services:
       - UPDATE_SERVER_PORT4=13003
     links:
       - update-server-supervisor
+    depends_on:
+      - update-server-supervisor
 
   update-server-supervisor:
     build: ./update-server-app

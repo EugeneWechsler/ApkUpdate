@@ -13,11 +13,10 @@ At this stage you can also tune other settings available in constants. Then you 
 <h3>Server side</h3>
 It is not that powerful as Auto Update APK in first implementation. There is no check by md5 implemented, so it does not update anything without incrementing version code. However new feature is added: variants. It is a reflection of <a href="http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Build-Variants">Gradle build variants</a> which allow you distribute same packages for different customers or departaments separately. 
 
-To use the tool in first turn you need to get a server available via interned :). Although you may want to put it inside your company network and it can work too.
+To use the tool in first turn you need to get a server available via Internet :). Although you may want to put it inside your company network and it can work too.
 
-There are some deploy scripts inside 'server/deploy-centos' folder. If you want it for Debian or Windows I'd love to see your pull request. 
+For deploy use docker-compose -f docker-compose.yml -f docker-compose.prod.yml up. 
 
-Upload src and deploy-centos folders to destination server. Go to deploy-centos folder and exeute install.sh. 
 Main file which describes your packages is packages.py. Corresponding apk files should be put in same file structure as in example. Or you can change alias path for /download inside nginx.conf
 
 <h2>Contribution and bugs</h2>
