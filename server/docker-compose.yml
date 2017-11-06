@@ -6,7 +6,7 @@ services:
     image: update-server-app:nginx
     container_name: update-server-nginx
     ports:
-      - 8888:80
+      - 8888:8080
     volumes:
       - ./update-server-app/src/packages:/packages
       - ./log:/var/log
