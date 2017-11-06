@@ -1,15 +1,18 @@
 version: '3'
 
 services:
-  update-server-app:
+
+  update-server-supervisor:
     build: ./update-server-app
-    image: update-server-app:python
-    container_name: update-server-app
+    image: update-server-app:supervisor
+    container_name: update-server-supervisor
     ports:
-      - 8888:17000
+      - 13000-13003:13000-13003
     volumes:
       - ./update-server-app/src/packages:/packages
+      - ./update-server-app/src/log:/var/log
     environment:
-      - TORNADO_PORT=17000
+      - SUPERVISOR_START_PORT=13000
+      - SUPERVISOR_PROCESSES=4
       - APK_PACKAGES=/packages
-
+      - LOGS=/var/log
