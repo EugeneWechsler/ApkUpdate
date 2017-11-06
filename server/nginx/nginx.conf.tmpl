@@ -43,7 +43,7 @@ http {
     proxy_next_upstream error;
 
     server {
-        listen 8080;
+        listen {{ .Env.NGINX_PORT }};
 
         location /download {
             alias /packages;

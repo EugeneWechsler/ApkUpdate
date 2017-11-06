@@ -1,6 +1,7 @@
 FROM nginx:alpine
 MAINTAINER Eugene Wechsler "<eugenewechsler@gmail.com>"
 
+ENV NGINX_PORT=8080
 RUN apk add --no-cache openssl
 
 ENV DOCKERIZE_VERSION v0.5.0
@@ -14,5 +15,6 @@ ENTRYPOINT ["sh", "/Docker_entry.sh"]
 
 CMD ["nginx", "-g", "daemon off;"]
 
+EXPOSE $NGINX_PORT
 
 

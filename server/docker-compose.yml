@@ -16,6 +16,7 @@ services:
       - UPDATE_SERVER_PORT2=13001
       - UPDATE_SERVER_PORT3=13002
       - UPDATE_SERVER_PORT4=13003
+      - NGINX_PORT=8080
     links:
       - update-server-supervisor
     depends_on:
