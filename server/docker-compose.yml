@@ -10,13 +10,6 @@ services:
     volumes:
       - ./update-server-app/src/packages:/packages
       - ./log:/var/log
-    environment:
-      - UPDATE_SERVER_ADDRESS=update-server-supervisor
-      - UPDATE_SERVER_PORT1=13000
-      - UPDATE_SERVER_PORT2=13001
-      - UPDATE_SERVER_PORT3=13002
-      - UPDATE_SERVER_PORT4=13003
-      - NGINX_PORT=8080
     links:
       - update-server-supervisor
     depends_on:
@@ -31,8 +24,3 @@ services:
     volumes:
       - ./update-server-app/src/packages:/packages
       - ./log:/var/log
-    environment:
-      - SUPERVISOR_START_PORT=13000
-      - SUPERVISOR_PROCESSES=4
-      - APK_PACKAGES=/packages
-      - LOGS=/var/log

@@ -2,13 +2,13 @@ version: '3'
 
 services:
   ngnix:
-    ports:
-      - 8000:8080
+    image: ${REGISTRY}/update-server-app:nginx
     volumes:
       - /opt/update-server/packages:/packages
       - /opt/update-server/log:/var/log
-    restart: always
+
   update-server-supervisor:
+    image: ${REGISTRY}/update-server-app:supervisor
     volumes:
       - /opt/update-server/packages:/packages
       - /opt/update-server/log:/var/log
