@@ -15,7 +15,7 @@ It is not that powerful as Auto Update APK in first implementation. There is no 
 
 To use the tool in first turn you need to get a server available via Internet :). Although you may want to put it inside your company network and it can work too.
 
-For deploy use docker-compose -f docker-compose.yml -f docker-compose.prod.yml up. 
+This repo offers deploy via docker images pushing to your registry. .env file should be created with REGISTRY and DOCKER_MACHINE vars for doing so. 
 
 Main file which describes your packages is packages.py. Corresponding apk files should be put in same file structure as in example. Or you can change alias path for /download inside nginx.conf
 
