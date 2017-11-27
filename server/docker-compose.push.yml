@@ -2,13 +2,13 @@ version: '3'
 
 services:
   ngnix:
-    image: ${REGISTRY}/update-server-app:nginx
+    image: ${REGISTRY}/update-server/nginx:latest
     volumes:
       - /opt/update-server/packages:/packages
       - /opt/update-server/log:/var/log
 
-  update-server-supervisor:
-    image: ${REGISTRY}/update-server-app:supervisor
+  supervisor:
+    image: ${REGISTRY}/update-server/supervisor:latest
     volumes:
       - /opt/update-server/packages:/packages
       - /opt/update-server/log:/var/log

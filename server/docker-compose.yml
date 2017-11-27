@@ -3,7 +3,7 @@ version: '3'
 services:
   ngnix:
     build: ./nginx
-    image: update-server-app:nginx
+    image: update-server/nginx:latest
     container_name: update-server-nginx
     ports:
       - 8888:8080
@@ -11,13 +11,11 @@ services:
       - ./update-server-app/src/packages:/packages
       - ./log:/var/log
     links:
-      - update-server-supervisor
-    depends_on:
-      - update-server-supervisor
+      - supervisor
 
-  update-server-supervisor:
+  supervisor:
     build: ./update-server-app
-    image: update-server-app:supervisor
+    image: update-server/supervisor:latest
     container_name: update-server-supervisor
     ports:
       - 13000-13003:13000-13003
