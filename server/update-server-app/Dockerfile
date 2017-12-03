@@ -24,3 +24,5 @@ RUN pip install -r requirements.txt
 RUN pip install supervisor==$SUPERVISOR_VERSION
 
 ENTRYPOINT ["sh", "/Docker_entry.sh"]
+
+#TODO Fixme reduce amount of layers
