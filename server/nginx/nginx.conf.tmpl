@@ -60,6 +60,10 @@ http {
             proxy_pass_header Server;
             proxy_set_header Host $http_host;
             proxy_redirect off;
+
+            client_body_buffer_size     10M;
+            client_max_body_size        10M;
+
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Scheme $scheme;
             proxy_pass $scheme://frontends;
