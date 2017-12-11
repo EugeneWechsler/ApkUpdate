@@ -8,5 +8,10 @@ up:
 	docker-compose up
 
 push:
-	docker-compose -f docker-compose.yml -f docker-compose.push.yml build
-	docker-compose -f docker-compose.yml -f docker-compose.push.yml push
+	@docker login -u $(REGISTRY_USER) -p `cat $(REGISTRY_PASSWORD_FILE)` $(REGISTRY)
+	docker-compose build
+	docker tag update-server/nginx $(REGISTRY)/update-server/nginx:latest
+	docker tag update-server/supervisor $(REGISTRY)/update-server/supervisor:latest
+	docker push $(REGISTRY)/update-server/nginx:latest
+	docker push $(REGISTRY)/update-server/supervisor:latest
+	@docker logout $(REGISTRY)

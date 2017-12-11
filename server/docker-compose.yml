@@ -3,21 +3,21 @@ version: '3'
 services:
   ngnix:
     build: ./nginx
-    image: update-server/nginx:latest
+    image: update-server/nginx
     container_name: update-server-nginx
     ports:
       - 8888:${NGINX_PORT-80}
     volumes:
       - ./update-server-app/src/packages:/packages
       - ./log:/var/log
-    envnironment:
+    environment:
       - NGINX_PORT=${NGINX_PORT-80}
     links:
       - supervisor
 
   supervisor:
     build: ./update-server-app
-    image: update-server/supervisor:latest
+    image: update-server/supervisor
     container_name: update-server-supervisor
     ports:
       - 13000-13003:13000-13003
